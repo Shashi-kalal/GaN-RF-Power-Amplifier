@@ -5,6 +5,9 @@ This project focuses on the design, optimization, and characterization of a high
 
 The primary objective of this work is to achieve optimal output power ($P_{out}$), high Power-Added Efficiency (PAE), and stable power gain over the targeted RF operating band while ensuring absolute circuit stability across all driving conditions.
 
+![Circuit Schematic](plots/pin_vs_pout_curve.png)
+![Circuit Schematic](plots/pin_vs_pout_curve.png)
+
 ---
 
 ## Technical Specifications & Targets
@@ -15,70 +18,43 @@ The primary objective of this work is to achieve optimal output power ($P_{out}$
 * **Quiescent Current ($I_{dq}$):** ~200 mA
 
 ---
+## Repository Structure
 
-## Repository Directory Structure
-
-The internal directories are structured cleanly to showcase individual design modules:
-
+```text
 📦 GaN-Power-Amplifier
  ┣ 📂 design_files
- ┃ ┣ 📜 schematic_setups.ads       # Keysight ADS design workspace files
- ┃ ┗ 📜 cgh40010f_model.pdk        # Device foundry PDK integration file
- ┣ 📂 test_benches
- ┃ ┣ 📜 load_pull_workspace        # Impedance tuner workspace tracking
- ┃ ┗ 📜 harmonic_balance_bench     # Saturation sweep setup scripts
+ ┃ ┣ 📜 gan_pa_integrated_workspace.ads # Integrated schematic design workspace file
+ ┃ ┗ 📜 cgh40010f_model.pdk            # Device foundry PDK integration file
  ┣ 📂 plots
- ┃ ┣ 📜 dc_iv_characteristics.png  # Transistor current-voltage sweep curves
- ┃ ┣ 📜 stability_k_factor.png     # Rollett stability metric graph across spectrum
- ┃ ┣ 📜 load_pull_contours.png     # Power and PAE contours mapped on Smith Chart
- ┃ ┗ 📜 hb_saturation_curves.png   # Large-signal PAE, Gain, and P1dB curves
- ┗ 📜 README.md                    # System characterization and documentation
+ ┃ ┗ 📜 pin_vs_pout_curve.png          # Large-signal power sweep saturation plot
+ ┗ 📜 README.md                        # Project documentation and analysis
 
----
-
+```
 ## Engineering Design & Simulation Pipeline
 
-The power amplifier design was executed through a rigorous, sequential workflow within Keysight Advanced Design System (ADS):
+The power amplifier design lifecycle was executed sequentially within a single, continuously evolved integrated design workspace in Keysight Advanced Design System (ADS):
 
 ### 1. Model Setup and DC Biasing (IV Curves)
-* **Action:** Imported the Wolfspeed CGH40010F PDK into ADS and configured a DC simulation schematic (`DC_Simulation`).
+* **Action:** Imported the Wolfspeed CGH40010F PDK into ADS and configured the core DC simulation schematic networks.
 * **Methodology:** Swept the gate voltage ($V_{gs}$ from $-4\text{ V}$ to $0\text{ V}$) and drain voltage ($V_{ds}$ from $0\text{ V}$ to $40\text{ V}$) to trace the complete device operational output characteristics.
 * **Analysis:** Located the pinch-off boundary at approximately $-3\text{ V}$. Established a stable Class AB quiescent bias point at $V_{ds} = 28\text{ V}$ with an $I_{dq}$ target of ~200 mA to secure the optimum compromise between linearity and structural efficiency.
 
-### 2. Bias Networks (Feed Circuits)
-* **Action:** Formulated decoupled bias distribution networks to feed DC power to the gate and drain terminals while guaranteeing strict RF isolation.
-* **Implementation:** Integrated quarter-wavelength ($\lambda/4$) microstrip transmission lines terminated with localized RF bypass capacitors. At the 2.4 GHz center frequency, this network emulates an ideal open circuit (RF Choke), preventing high-frequency leakage back into the DC power rails.
+### 2. Bias Networks & Stability Network Synthesis
+* **Action:** Formulated decoupled bias distribution networks to feed DC power safely while ensuring absolute RF isolation and circuit stability across a wide operating frequency band.
+* **Implementation:** Integrated quarter-wavelength ($\lambda/4$) microstrip transmission lines terminated with localized RF bypass capacitors to act as an RF Choke at 2.4 GHz. Simultaneously, a parallel RC network and series resistance were synthesized directly into the gate feeding path to damp out destabilizing low-frequency gain, successfully achieving unconditional small-signal stability constraints.
 
-### 3. Stability Analysis
-* **Action:** Ran small-signal linear AC simulations to evaluate the Rollett stability factor ($K$) and Mu ($\mu$) parameters from 100 MHz out to 10 GHz.
-* **Analysis:** Monitored potential out-of-band oscillation points ($K < 1$).
-* **Compensation:** Added a parallel RC network and series resistance directly into the gate feeding path to damp out destabilizing low-frequency gain, successfully maintaining unconditional stability ($K > 1$) across the entire swept frequency spectrum.
+### 3. Load-Pull Simulation (Large-Signal Core)
+* **Action:** Executed large-signal Load-Pull simulations directly on the active transistor network to optimize output power matching, bypassing small-signal $S_{22}$ limitations under non-linear compression.
+* **Mechanism:** Configured an automated impedance tuner model at the CGH40010F drain port to mathematically map power and PAE contours directly onto the Smith Chart, extracting the optimum compromise coordinate ($Z_{L,opt}$).
 
-### 4. Load-Pull Simulation (Large-Signal Core)
-* **Action:** Executed large-signal Load-Pull simulations to optimize output power matching, bypassing small-signal $S_{22}$ limitations under non-linear compression.
-* **Mechanism:** Configured an automated impedance tuner model at the CGH40010F drain port to mathematically map hundreds of load impedance coordinates.
-* **Analysis:** Plotted constant $P_{out}$ and PAE performance contours directly onto the Smith Chart. Extracted the optimum compromise coordinate to serve as the targeted target load impedance ($Z_{L,opt}$).
+### 4. Smith Chart Impedance Matching Network (IMN & OMN) Design
+* **Action:** Leveraged the interactive Smith Chart Utility toolset within the workspace to calculate and layout physical microstrip matching lines.
+* **Output Matching Network (OMN):** Transformed the conventional $50\ \Omega$ antenna system load termination directly to the complex $Z_{L,opt}$ found during the load-pull sweeps.
+* **Input Matching Network (IMN):** Transformed the incoming $50\ \Omega$ generator path to the complex conjugate of the transistor's input impedance ($Z_{in}^*$) for maximum localized power delivery.
 
-### 5. Impedance Matching Network (IMN & OMN) Design
-* **Action:** Leveraged the ADS Smith Chart Utility toolset to calculate and layout physical microstrip matching lines.
-* **Output Matching Network (OMN):** Transformed the conventional $50\ \Omega$ antenna system load termination directly to the complex $Z_{L,opt}$ mapped via the load-pull data.
-* **Input Matching Network (IMN):** Transformed the incoming $50\ \Omega$ generator path to the complex conjugate of the transistor's input impedance ($Z_{in}^*$), maximizing localized power delivery.
-
-### 6. Harmonic Balance (HB) Verification
-* **Action:** Ran large-signal Harmonic Balance simulations, sweeping the input power ($P_{in}$) up into deep saturation ($+35\text{ dBm}$).
-* **Verified Performance Metrics:**
-  * **Power-Added Efficiency (PAE):** Verified peak efficiency targets ($>60\%$) expected of high-performance Class AB operation.
-  * **Power Gain:** Profiled gain flatness constraints across the linear region before compression sets in.
-  * **Compression Point Extraction:** Evaluated the 1-dB ($P_{1dB}$) and 3-dB ($P_{3dB}$) compression points to define clear power handling boundaries.
-
----
-
-## Verification Environment Setup
-1. Launch **Keysight ADS** and restore the archived `.7zap` workspace file from the `design_files/` directory.
-2. Ensure the **Wolfspeed CGH40010F PDK** path variables are properly pointed to your local design kit index.
-3. Open individual simulation cells corresponding to the numbered milestones above (`01_DC_Bias`, `03_Stability`, `04_LoadPull`, `06_HarmonicBalance`) to view data displays and trace performance curves.
-
----
+### 5. Harmonic Balance (HB) Verification
+* **Action:** Formulated a large-signal Harmonic Balance simulation engine around the fully matched topology to execute input power sweeps up into hard compression ($+35\text{ dBm}$).
+* **Analysis:** Evaluated fundamental power transfer, power gain flatness constraints, and compression point extraction ($P_{1dB}$) to define clear power handling and saturation boundaries.
 
 ## Contributors
 * [Shashikant Kalal](https://github.com/Shashi-kalal)
