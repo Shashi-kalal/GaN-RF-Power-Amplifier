@@ -5,8 +5,8 @@ This project focuses on the design, optimization, and characterization of a high
 
 The primary objective of this work is to achieve optimal output power ($P_{out}$), high Power-Added Efficiency (PAE), and stable power gain over the targeted RF operating band while ensuring absolute circuit stability across all driving conditions.
 
-![Circuit Schematic](plots/pin_vs_pout_curve.png)
-![Circuit Schematic](plots/pin_vs_pout_curve.png)
+![Circuit Schematic](Images/Circuit_schematic.png)
+![Circuit Schematic](Images/pinvspout(dBm).png)
 
 ---
 
