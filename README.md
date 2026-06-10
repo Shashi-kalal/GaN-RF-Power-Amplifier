@@ -81,5 +81,5 @@ The power amplifier design was executed through a rigorous, sequential workflow 
 ---
 
 ## Contributors
-* [Shashikant](https://github.com/Shashi-kalal)
+* [Shashikant Kalal](https://github.com/Shashi-kalal)
 * [Tejaswini K N](https://github.com/tejaswini1009)
