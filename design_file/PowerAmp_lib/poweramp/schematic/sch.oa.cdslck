@@ -1,0 +1,16 @@
+#
+# Edit Lock-Stake file. CAUTION: Please do not change.
+#
+# Information about current Edit Lock Owner.
+#
+LockStakeVersion               1.1
+LoginName                      Lenovo
+HostName                       DESKTOP-ITLDQUP
+ProcessIdentifier              20000
+ProcessCreationTime_UTC        1781066738
+ProcessCreationTime_Readable   Wed Jun 10 10:15:38 2026 India Standard Time
+AppIdentifier                  OA File System Design Manager
+OSType                         win32
+ReasonForPlacingEditLock       OpenAccess edit lock
+FilePathUsedToEditLock         C:\Users\Lenovo\PowerAmp_wrk\PowerAmp_lib\poweramp\schematic\sch.oa.cdslck
+TimeEditLocked                 Wed Jun 10 10:16:23 2026 India Standard Time
